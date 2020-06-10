@@ -1,0 +1,50 @@
+---
+title: "vignette report"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE}
+library(blblm)
+```
+
+The new version of the data add two main features. The package allow user to specific filenames instead of data frame. Thus, no more reading TB data before you use the function. Instead, the reading data part is all done parallel. It speeds up the process a lot. 
+
+The second feature is to run functions parallel. I use iris data to demonstrate. Following is the example to run by 1 core. 
+
+```{r}
+blblm_fit <- blblm(Sepal.Length ~ Sepal.Width, data = iris, m = 5, B = 100)
+```
+
+This is an example to run in two core
+```{r}
+blblm_fit <- blblm(Sepal.Length ~ Sepal.Width, data = iris, m = 5, B = 100, 2)
+```
+
+Next, we will show how the new data entrance method works. 
+
+```{r}
+iris_split <- split(iris, iris$Species)
+fname <- names(iris_split)
+write.csv(iris_split[[fname[1]]], file = paste0(fname[1], ".csv"))
+write.csv(iris_split[[fname[2]]], file = paste0(fname[2], ".csv"))
+write.csv(iris_split[[fname[3]]], file = paste0(fname[3], ".csv"))
+
+blblm_fit <- blblm(Sepal.Length ~ Sepal.Width, data = paste0(fname, ".csv"), m = 5, B = 100, 2)
+coef(blblm_fit)
+
+file.remove(paste0(fname, ".csv"))
+```
+
+We are all good.
+
